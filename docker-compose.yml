@@ -1,7 +1,6 @@
 version: '3.8'
 
-services:
-  # 1. Base de Datos MySQL Compartida
+services: 
   db:
     image: mysql:8.0
     container_name: mysql-db
@@ -17,7 +16,7 @@ services:
     networks:
       - innovatech_net
 
-  # 2. Microservicio de Ventas (Puerto 8080)
+
   backend-ventas:
     image: shovelisco/innovatech-backend-ventas:latest
     container_name: api-ventas
@@ -34,7 +33,7 @@ services:
     networks:
       - innovatech_net
 
-  # 3. Microservicio de Despachos (Puerto 8081)
+
   backend-despachos:
     image:  shovelisco/innovatech-backend-despachos:latest
     container_name: api-despachos
