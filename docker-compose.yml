@@ -1,0 +1,60 @@
+version: '3.8'
+
+services:
+  # 1. Base de Datos MySQL Compartida
+  db:
+    image: mysql:8.0
+    container_name: mysql-db
+    environment:
+      MYSQL_ROOT_PASSWORD: rootpassword
+      MYSQL_DATABASE: app_db
+      MYSQL_USER: app_user
+      MYSQL_PASSWORD: app_password
+    ports:
+      - "3306:3306"
+    volumes:
+      - db_data:/var/lib/mysql
+    networks:
+      - innovatech_net
+
+  # 2. Microservicio de Ventas (Puerto 8080)
+  backend-ventas:
+    image: shovelisco/innovatech-backend-ventas:latest
+    container_name: api-ventas
+    ports:
+      - "8080:8080"
+    environment:
+      - DB_ENDPOINT=db
+      - DB_PORT=3306
+      - DB_NAME=app_db
+      - DB_USERNAME=app_user
+      - DB_PASSWORD=app_password
+    depends_on:
+      - db
+    networks:
+      - innovatech_net
+
+  # 3. Microservicio de Despachos (Puerto 8081)
+  backend-despachos:
+    image:  shovelisco/innovatech-backend-despachos:latest
+    container_name: api-despachos
+    ports:
+      - "8081:8081"
+    environment:
+      - DB_ENDPOINT=db
+      - DB_PORT=3306
+      - DB_NAME=app_db
+      - DB_USERNAME=app_user
+      - DB_PASSWORD=app_password
+    depends_on:
+      - db
+    networks:
+      - innovatech_net
+
+volumes:
+  db_data:
+    name: innovatech_db_data
+
+networks:
+  innovatech_net:
+    name: network_backend_innovatech
