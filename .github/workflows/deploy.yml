@@ -20,7 +20,7 @@ jobs:
 
       - name: 3. Construir y Subir Imágenes del Backend
         run: |
-          docker build -t shovelisco/innovatech-backend-ventas:latest ./back-Ventas_SpringBoot/springboot-API-REST
+          docker build -t shovelisco/innovatech-backend-ventas:latest ./back-Ventas_SpringBoot/Springboot-API-REST
           docker build -t shovelisco/innovatech-backend-despachos:latest ./back-Despachos_SpringBoot/Springboot-API-REST-DESPACHO
           docker push shovelisco/innovatech-backend-ventas:latest
           docker push shovelisco/innovatech-backend-despachos:latest
