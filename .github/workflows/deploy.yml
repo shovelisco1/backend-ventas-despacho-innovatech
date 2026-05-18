@@ -19,10 +19,9 @@ jobs:
           password: ${{ secrets.DOCKER_PASSWORD }}
 
       - name: 3. Construir y Subir Imágenes del Backend
-        # Construye la API de ventas y la de despachos
         run: |
-          docker build -t shovelisco/innovatech-backend-ventas:latest ./path-to-ventas-or-context
-          docker build -t shovelisco/innovatech-backend-despachos:latest ./path-to-despachos-or-context
+          docker build -t shovelisco/innovatech-backend-ventas:latest ./back-Ventas_SpringBoot
+          docker build -t shovelisco/innovatech-backend-despachos:latest ./back-Despachos_SpringBoot/Springboot-API-REST-DESPACHO
           docker push shovelisco/innovatech-backend-ventas:latest
           docker push shovelisco/innovatech-backend-despachos:latest
 
