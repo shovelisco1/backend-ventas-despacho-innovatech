@@ -9,7 +9,7 @@ jobs:
   build-and-deploy:
     runs-on: ubuntu-latest
     steps:
-      - name: 1. Checkout del código
+      - name: 1. Checkout del códigog
         uses: actions/checkout@v3
 
       - name: 2. Iniciar sesión en Docker Hub
@@ -20,7 +20,7 @@ jobs:
 
       - name: 3. Construir y Subir Imágenes del Backend
         run: |
-          docker build -t shovelisco/innovatech-backend-ventas:latest ./back-Ventas_SpringBoot
+          docker build -t shovelisco/innovatech-backend-ventas:latest ./back-Ventas_SpringBoot/springboot-API-REST
           docker build -t shovelisco/innovatech-backend-despachos:latest ./back-Despachos_SpringBoot/Springboot-API-REST-DESPACHO
           docker push shovelisco/innovatech-backend-ventas:latest
           docker push shovelisco/innovatech-backend-despachos:latest
