@@ -73,7 +73,7 @@ jobs:
           task-definition: ${{ steps.render-ventas.outputs.task-definition }}
           service: ${{ env.ECS_SERVICE_VENTAS }}
           cluster: ${{ env.ECS_CLUSTER }}
-          wait-for-service-stability: true  
+          wait-for-service-stability: false 
 
       # ==========================================
       # FLUJO PARA DESPACHOS
