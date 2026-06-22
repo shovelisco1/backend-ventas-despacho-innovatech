@@ -11,13 +11,13 @@ env:
   ECS_CLUSTER: cluster-innovatecha
 
   # --- Variables de VENTAS ---
-  ECR_REPO_VENTAS: innovatech-ventas                 
+  ECR_REPO_VENTAS: innovatech-backend-ventas                
   ECS_SERVICE_VENTAS: service-innovatech-ventas       
   ECS_TASK_DEF_VENTAS: task-innovatech-ventas         
   CONTAINER_VENTAS: app-ventas                        
 
   # --- Variables de DESPACHOS ---
-  ECR_REPO_DESPACHOS: innovatech-despachos            
+  ECR_REPO_DESPACHOS: innovatech-backend-despachos          
   ECS_SERVICE_DESPACHOS: service-innovatech-despachos 
   ECS_TASK_DEF_DESPACHOS: task-innovatech-despachos   
   CONTAINER_DESPACHOS: app-despachos                  
