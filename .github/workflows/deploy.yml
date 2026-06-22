@@ -68,7 +68,7 @@ jobs:
           image: ${{ steps.build-ventas.outputs.image }}
 
       - name: 7. [VENTAS] Desplegar en ECS
-        uses: aws-actions/amazon-ecs-deploy-task-definition@v1
+        uses: aws-actions/amazon-ecs-deploy-task-definition@v2
         with:
           task-definition: ${{ steps.render-ventas.outputs.task-definition }}
           service: ${{ env.ECS_SERVICE_VENTAS }}
