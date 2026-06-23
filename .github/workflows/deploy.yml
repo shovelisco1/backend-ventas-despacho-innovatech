@@ -1,26 +1,23 @@
-name: CI/CD Backends (Ventas y Despachos) a ECS
+name: CI/CD Backends (Ventas y Despachos) a EKS
 
 on:
   push:
     branches:
       - deploy
 
-
 env:
   AWS_REGION: us-east-1
-  ECS_CLUSTER: cluster-innovatecha
+  EKS_CLUSTER: cluster-innovatecha  # <-- Asegúrate de que este sea el nombre exacto de tu clúster EKS
 
   # --- Variables de VENTAS ---
   ECR_REPO_VENTAS: innovatech-backend-ventas                
-  ECS_SERVICE_VENTAS: service-innovatech-ventas       
-  ECS_TASK_DEF_VENTAS: task-innovatech-ventas         
-  CONTAINER_VENTAS: app-ventas                        
+  DEPLOYMENT_VENTAS: innovatech-ventas-deployment  # Nombre de tu deployment en K8s
+  CONTAINER_VENTAS: innovatech-ventas              # Nombre del contenedor dentro del deployment
 
   # --- Variables de DESPACHOS ---
   ECR_REPO_DESPACHOS: innovatech-backend-despachos          
-  ECS_SERVICE_DESPACHOS: service-innovatech-despachos 
-  ECS_TASK_DEF_DESPACHOS: task-innovatech-despachos   
-  CONTAINER_DESPACHOS: app-despachos                  
+  DEPLOYMENT_DESPACHOS: innovatech-despacho-deployment # Nombre de tu deployment en K8s
+  CONTAINER_DESPACHOS: innovatech-despacho            # Nombre del contenedor dentro del deployment
 
 jobs:
   build-and-deploy:
@@ -36,7 +33,7 @@ jobs:
           aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
           aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
           aws-session-token: ${{ secrets.AWS_SESSION_TOKEN }}
-          aws-region: us-east-1
+          aws-region: ${{ env.AWS_REGION }}
 
       - name: 3. Iniciar sesión en Amazon ECR
         id: login-ecr 
@@ -55,30 +52,10 @@ jobs:
           docker push $ECR_REGISTRY/${{ env.ECR_REPO_VENTAS }}:$IMAGE_TAG
           echo "image=$ECR_REGISTRY/${{ env.ECR_REPO_VENTAS }}:$IMAGE_TAG" >> $GITHUB_OUTPUT
 
-      - name: 5. [VENTAS] Descargar Task Definition actual
-        run: |
-          aws ecs describe-task-definition --task-definition ${{ env.ECS_TASK_DEF_VENTAS }} --query taskDefinition > task-ventas.json
-
-      - name: 6. [VENTAS] Actualizar imagen en Task Definition
-        id: render-ventas
-        uses: aws-actions/amazon-ecs-render-task-definition@v1
-        with:
-          task-definition: task-ventas.json
-          container-name: ${{ env.CONTAINER_VENTAS }}
-          image: ${{ steps.build-ventas.outputs.image }}
-
-      - name: 7. [VENTAS] Desplegar en ECS
-        uses: aws-actions/amazon-ecs-deploy-task-definition@v2
-        with:
-          task-definition: ${{ steps.render-ventas.outputs.task-definition }}
-          service: ${{ env.ECS_SERVICE_VENTAS }}
-          cluster: ${{ env.ECS_CLUSTER }}
-          wait-for-service-stability: false 
-
       # ==========================================
       # FLUJO PARA DESPACHOS
       # ==========================================
-      - name: 8. [DESPACHOS] Construir y subir imagen
+      - name: 5. [DESPACHOS] Construir y subir imagen
         id: build-despachos
         env:
           ECR_REGISTRY: ${{ steps.login-ecr.outputs.registry }}
@@ -88,22 +65,22 @@ jobs:
           docker push $ECR_REGISTRY/${{ env.ECR_REPO_DESPACHOS }}:$IMAGE_TAG
           echo "image=$ECR_REGISTRY/${{ env.ECR_REPO_DESPACHOS }}:$IMAGE_TAG" >> $GITHUB_OUTPUT
 
-      - name: 9. [DESPACHOS] Descargar Task Definition actual
+      # ==========================================
+      # CONEXIÓN Y DESPLIEGUE EN KUBERNETES (EKS)
+      # ==========================================
+      - name: 6. Configurar acceso al Clúster EKS
         run: |
-          aws ecs describe-task-definition --task-definition ${{ env.ECS_TASK_DEF_DESPACHOS }} --query taskDefinition > task-despachos.json
+          aws eks update-kubeconfig --region ${{ env.AWS_REGION }} --name ${{ env.EKS_CLUSTER }}
 
-      - name: 10. [DESPACHOS] Actualizar imagen en Task Definition
-        id: render-despachos
-        uses: aws-actions/amazon-ecs-render-task-definition@v1
-        with:
-          task-definition: task-despachos.json
-          container-name: ${{ env.CONTAINER_DESPACHOS }}
-          image: ${{ steps.build-despachos.outputs.image }}
+      - name: 7. [VENTAS] Actualizar Imagen en EKS
+        run: |
+          kubectl set image deployment/${{ env.DEPLOYMENT_VENTAS }} ${{ env.CONTAINER_VENTAS }}=${{ steps.build-ventas.outputs.image }} -n innovatech
 
-      - name: 11. [DESPACHOS] Desplegar en ECS
-        uses: aws-actions/amazon-ecs-deploy-task-definition@v2
-        with:
-          task-definition: ${{ steps.render-despachos.outputs.task-definition }}
-          service: ${{ env.ECS_SERVICE_DESPACHOS }}
-          cluster: ${{ env.ECS_CLUSTER }}
-          wait-for-service-stability: false
+      - name: 8. [DESPACHOS] Actualizar Imagen en EKS
+        run: |
+          kubectl set image deployment/${{ env.DEPLOYMENT_DESPACHOS }} ${{ env.CONTAINER_DESPACHOS }}=${{ steps.build-despachos.outputs.image }} -n innovatech
+
+      - name: 9. Verificar estado del despliegue
+        run: |
+          kubectl rollout status deployment/${{ env.DEPLOYMENT_VENTAS }} -n innovatech
+          kubectl rollout status deployment/${{ env.DEPLOYMENT_DESPACHOS }} -n innovatech
